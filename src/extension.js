@@ -18,6 +18,10 @@ function activate(context) {
 		checkToken(uploadImgs);
 	});
 
+	let showMes = (message) => {
+		vscode.window.showInformationMessage(message)
+	}
+
 	const uploadPapers = (token) => {
 		const content = vscode.window.activeTextEditor._documentData._lines;
 		vscode.window.showInputBox({
@@ -29,7 +33,7 @@ function activate(context) {
 			let data = {
 				tags: msg.split(" "),
 				title: content[0].slice(2),
-				time: new  Date().toLocaleDateString(),
+				time: new Date().toLocaleDateString(),
 				text: content.slice(1).join("\n"),
 				paperId: "new",
 				type: "paper",
@@ -42,19 +46,19 @@ function activate(context) {
 		})
 		.then(res => {
 			if(!res.data.login){
-				vscode.window.showInformationMessage("没有登陆");
+				showMes("没有登陆");
 				vscode.workspace.getConfiguration()
 					.update('vscodePluginDemo.token', "", true);
 			}
 			if(res.data.success){
-				vscode.window.showInformationMessage("上传成功");
+				showMes("上传成功");
 			}
 			else{
-				vscode.window.showInformationMessage("上传失败");
+				showMes("上传失败");
 			}
 		})
 		.catch(() => {
-			vscode.window.showInformationMessage("失败");
+			showMes("失败");
 		})
 	}
 
@@ -65,7 +69,7 @@ function activate(context) {
 			f(token);
 			return;
 		}
-		vscode.window.showInformationMessage("需要登陆");
+		showMes("需要登陆");
 		vscode.window.showInputBox({
 			password: true,
 			ignoreFocusOut: true,
@@ -80,13 +84,13 @@ function activate(context) {
 			if(res.data.token){
 				vscode.workspace.getConfiguration()
 					.update('vscodePluginDemo.token', res.data.token, true);
-				vscode.window.showInformationMessage("登陆成功");
+				showMes("登陆成功");
 				return;
 			}
-			vscode.window.showInformationMessage("密码错误");
+			showMes("密码错误");
 		})
 		.catch(() => {
-			vscode.window.showInformationMessage("登陆失败");
+			showMes("登陆失败");
 		})
 	}
 
@@ -102,17 +106,17 @@ function activate(context) {
 			let imgPath = msg[0].path;
 			let data = fs.readFileSync(imgPath);
 			let t = imgPath.split(".");
-			base64 = data.toString('base64')
+			let base64 = data.toString('base64')
 			return axios.post("upload2",
-				{data: base64,
-				 filetype: t[t.length - 1]},
-				{headers: { "token": token }})
+							{data: base64,
+							filetype: t[t.length - 1]},
+							{headers: { "token": token }})
 		})
 		.then(res => {
 			let d = res.data;
 			if(d.success){
 				vscode.env.clipboard.writeText(d.name);
-				vscode.window.showInformationMessage("上传成功");
+				showMes("上传成功");
 			}
 			else{
 				vscode.window.showWarningMessage("重新登陆");
@@ -120,7 +124,7 @@ function activate(context) {
 					.update('vscodePluginDemo.token', "", true);
 			}
 		})
-		.catch(error => {
+		.catch(() => {
 			vscode.window.showErrorMessage("失败");
 		})
 	}
